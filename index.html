@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fresh agent testing · Gaurav Basantani</title>
+<meta name="description" content="How I test AI work with fresh AI agents that have never seen it, and what two studies found: LIVE and the Proposal kit. Real numbers only.">
+<meta name="color-scheme" content="light dark">
+<style>
+:root {
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --text: #1b1d22;
+  --muted: #5b6170;
+  --line: #e3e1db;
+  --accent: #1d4ed8;
+  --accent-soft: #eef2fd;
+  --note-bg: #fff7e0;
+  --note-text: #5c4300;
+  --note-line: #ecd48a;
+  --code-bg: #f1efe9;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181d;
+    --surface: #1e2128;
+    --text: #e9eaee;
+    --muted: #a3a9b6;
+    --line: #2e323b;
+    --accent: #93b4ff;
+    --accent-soft: #1f2a44;
+    --note-bg: #2c2512;
+    --note-text: #f1d892;
+    --note-line: #54461f;
+    --code-bg: #262a32;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 16px; }
+header.top { padding: 40px 0 8px; }
+.eyebrow { font-size: 14px; color: var(--muted); margin: 0 0 12px; }
+.eyebrow a { color: inherit; }
+h1 { font-size: 34px; line-height: 1.15; margin: 0 0 14px; letter-spacing: -0.01em; }
+h2 { font-size: 24px; line-height: 1.25; margin: 0 0 12px; }
+h3 { font-size: 18px; line-height: 1.3; margin: 24px 0 8px; }
+p { margin: 0 0 14px; }
+.lede { font-size: 19px; color: var(--muted); }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+.links { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 18px 0 0; padding: 0; list-style: none; font-size: 15px; }
+nav.toc { margin: 28px 0 8px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; font-size: 15px; }
+nav.toc p { margin: 0 0 6px; color: var(--muted); }
+nav.toc ol { margin: 0; padding-left: 20px; }
+section { padding: 32px 0 8px; border-top: 1px solid var(--line); margin-top: 32px; }
+ul, ol { padding-left: 22px; margin: 0 0 14px; }
+li { margin: 0 0 6px; }
+code { font: 0.9em/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 18px 0; padding: 0; list-style: none; }
+.facts li { margin: 0; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; font-size: 15px; color: var(--muted); }
+.facts strong { display: block; font-size: 22px; color: var(--text); line-height: 1.2; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 16px 6px; margin: 18px 0; }
+.card h3 { margin-top: 4px; }
+.tag { display: inline-block; font-size: 13px; line-height: 1.3; padding: 3px 8px; border-radius: 999px; background: var(--note-bg); color: var(--note-text); border: 1px solid var(--note-line); margin: 0 0 6px; }
+.card dl { margin: 0 0 12px; }
+.card dt { font-weight: 600; font-size: 15px; margin-top: 10px; }
+.card dd { margin: 2px 0 0; }
+.note { background: var(--note-bg); color: var(--note-text); border: 1px solid var(--note-line); border-radius: 10px; padding: 12px 14px; font-size: 15px; margin: 16px 0; }
+.lesson { font-size: 20px; line-height: 1.4; border-left: 3px solid var(--accent); padding: 2px 0 2px 14px; margin: 8px 0 18px; }
+.steps { counter-reset: s; list-style: none; padding: 0; }
+.steps li { counter-increment: s; position: relative; padding-left: 38px; margin-bottom: 12px; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: 1px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 14px; font-weight: 700; display: grid; place-items: center; }
+footer { border-top: 1px solid var(--line); margin-top: 40px; padding: 24px 0 48px; font-size: 15px; color: var(--muted); }
+@media (min-width: 700px) {
+  header.top { padding-top: 64px; }
+  h1 { font-size: 42px; }
+  .facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow"><a href="https://gauravbasantani.com">Gaurav Basantani</a> · method notes</p>
+  <h1>How I test AI with fresh agents</h1>
+  <p class="lede">AI output can look finished and still be wrong. I test it with AI agents that have never seen the work, then check what they made with tools, not just my eyes. I've used this method twice. Here is how it works and what it found.</p>
+</header>
+
+<nav class="toc" aria-label="On this page">
+  <p>On this page</p>
+  <ol>
+    <li><a href="#problem">The problem</a></li>
+    <li><a href="#method">The method in 5 steps</a></li>
+    <li><a href="#live">Study 1: LIVE</a></li>
+    <li><a href="#kit">Study 2: Proposal kit</a></li>
+    <li><a href="#week-one">What I'd do at a company in week one</a></li>
+  </ol>
+</nav>
+
+<section id="problem">
+  <h2>The problem</h2>
+  <p>The worst AI mistakes don't look like mistakes. The page renders. The video plays. The numbers are formatted. And something is still wrong:</p>
+  <ul>
+    <li>a rule that means one thing in step 2 and another in step 5,</li>
+    <li>a label in a brand color nobody can read,</li>
+    <li>markup that looks fine on screen and breaks for a screen reader.</li>
+  </ul>
+  <p>A reviewer who already knows the work reads past these. Someone new, or something new, runs straight into them.</p>
+</section>
+
+<section id="method">
+  <h2>The method in 5 steps</h2>
+  <ol class="steps">
+    <li><strong>Write down the mistakes that matter.</strong> Before testing, list the mistakes that would look finished and be wrong. Those are what you count.</li>
+    <li><strong>Start every agent fresh.</strong> Each test agent gets a clean copy of the project and no context. It knows only what a new user or a new developer would know.</li>
+    <li><strong>Give it a real job, more than once.</strong> Same task, several runs. When you're testing whether something helps, run with it and without it, and change nothing else.</li>
+    <li><strong>Check the output with tools.</strong> Full builds, accessibility checks, measured contrast, lint rules. Count findings by type. Report the numbers as they came out.</li>
+    <li><strong>Fix, then verify each fix on its own.</strong> A fix isn't done because someone said so. Check it, then run fresh agents again.</li>
+  </ol>
+</section>
+
+<section id="live">
+  <h2>Study 1: LIVE</h2>
+  <p class="lesson">Fresh agents found contradictions no reviewer had noticed. And a fix isn't a fix until it's checked on its own.</p>
+  <p>LIVE is an AI video workspace for short teaching videos at ASU's Learning Engineering Institute. People talk to an AI assistant and get a styled, captioned video, with no editing software. It is a three-designer project. I wrote the instructions and skills the AI follows: the 8-step video conversation, the ASU style, captions and narration skills, setup and permissions, and worked examples.</p>
+  <h3>How I tested it</h3>
+  <p>Before anyone new touched it, fresh AI agents with no context played the new user, in clean copies of the project, across two rounds.</p>
+  <ul class="facts">
+    <li><strong>8</strong>fresh AI agents as new users</li>
+    <li><strong>2</strong>rounds</li>
+    <li><strong>17</strong>defects in the first full build</li>
+    <li><strong>12</strong>findings in the second</li>
+  </ul>
+  <p>All of them are closed. One example: "short" meant 30 seconds in one step and 60 in another. Now there is one definition, used everywhere.</p>
+  <p>I also made a mistake of my own. Two first-round fixes were reported done but never saved, and the test agents found one of them again. Since then, every fix is verified on its own. That is step 5.</p>
+  <h3>Measured, not assumed</h3>
+  <p>ASU's secondary colors were measured against the page, not assumed. 4 of 7 fail even the 3:1 minimum for shapes. So the style skill uses them for fills only, never for text or labels.</p>
+  <p>LIVE's code is private, so this page describes the method and results only.</p>
+  <ul class="links">
+    <li><a href="https://gauravbasantani.com/work/live">LIVE case study on my site</a></li>
+    <li><a href="https://live.lei-tech.org/">LIVE, team's public version</a></li>
+  </ul>
+</section>
+
+<section id="kit">
+  <h2>Study 2: Proposal kit</h2>
+  <p class="lesson">Rules built into the components did the work. The docs had almost nothing left to prevent.</p>
+  <p>The Proposal kit is a tiny design system for one solar proposal summary, with made-up data. I designed it and directed Claude Code, which wrote the code. I wanted to know whether AI-facing docs stop an AI coding tool from making costly mistakes.</p>
+  <h3>How I tested it</h3>
+  <p>20 fresh <code>claude -p</code> runs built the same page from the same prompt. Half got the kit's AI docs, half didn't. Each run worked in its own copy, with no tests or lint rules to copy from. Then the same checks ran on every output, counting five mistake types.</p>
+  <h3>What happened</h3>
+  <ul>
+    <li><strong>Types 1 to 4 never happened,</strong> with or without the docs. No price typed as text, no payment without its rate and term, no hardcoded colors or sizes, no savings without "Estimated". Every run read the components, and the required props made those mistakes hard to make.</li>
+    <li><strong>One accessibility slip got through:</strong> a divider placed inside a definition list. It looked fine on screen. It showed up in 5 of 10 runs without the docs and 1 of 10 with them.</li>
+  </ul>
+  <p>That is not proof the docs helped. The docs never mention this mistake, and 5 runs per group in each round is a small sample. What it does show: the checks caught a real mistake a person reviewing the screen would miss.</p>
+  <p>The next step, not done yet, is a rule that stops the divider from going inside a list at all.</p>
+  <ul class="links">
+    <li><a href="https://github.com/gauravbasantani/proposal-kit/tree/main/evals">The eval: prompts, logs and counts</a></li>
+    <li><a href="https://gauravbasantani.github.io/proposal-kit/">Storybook</a></li>
+  </ul>
+</section>
+
+<section id="week-one">
+  <h2>What I'd do at a company in week one</h2>
+  <ol class="steps">
+    <li><strong>List the mistakes that cost the most.</strong> With the team, write down the five errors in your product that look finished and are wrong.</li>
+    <li><strong>Run fresh agents on one real path.</strong> A new user's first task, or an AI tool building a screen from your design system. Clean copies, no context.</li>
+    <li><strong>Add one check for what got through.</strong> A lint rule, an accessibility test, a required prop. Something that runs every time, not a note in the docs.</li>
+    <li><strong>Share the raw numbers.</strong> What was found, what was fixed, what is still open. No rounding up.</li>
+  </ol>
+</section>
+
+<footer>
+  <p>Gaurav Basantani · Product designer and design engineer · Tempe, Arizona</p>
+  <ul class="links">
+    <li><a href="https://gauravbasantani.com">gauravbasantani.com</a></li>
+    <li><a href="https://gauravbasantani.github.io/uds-notes/">Tailwind UDS notes</a></li>
+    <li><a href="https://www.linkedin.com/in/gauravbasantani/">LinkedIn</a></li>
+    <li><a href="https://github.com/gauravbasantani">GitHub</a></li>
+    <li><a href="mailto:gbasanta@asu.edu">gbasanta@asu.edu</a></li>
+  </ul>
+  <p>Personal notes. Not an official ASU page.</p>
+</footer>
+
+</div>
+</body>
+</html>
